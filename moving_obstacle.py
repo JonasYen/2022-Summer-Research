@@ -1,0 +1,52 @@
+#!/usr/bin/env python3
+
+
+import rospy
+import time
+import numpy as np 
+from geometry_msgs.msg import Twist
+from gazebo_msgs.msg import ModelState, ModelStates
+
+class Moving():
+    def __init__(self):
+        self.pub_model = rospy.Publisher('gazebo/set_model_state', ModelState, queue_size=1)
+        self.moving()
+
+    def moving(self):
+        while not rospy.is_shutdown():
+            obstacle = ModelState()
+            model = rospy.wait_for_message('gazebo/model_states', ModelStates)
+            for i in range(len(model.name)):
+                if model.name[i] == 'unit_box':
+                    obstacle.model_name = 'unit_box'
+                    obstacle.pose = model.pose[i]
+                    #obstacle.twist = Twist()
+                    #obstacle.twist.angular.z = 0.5
+                    
+                    for xPos in np.arange(1.0, -1.0, -0.1):
+                        obstacle.pose.position.x = xPos
+                        self.pub_model.publish(obstacle)
+                        time.sleep(0.1)                       
+                                	           
+                    for xPos in np.arange(-1.0, 1.0, 0.1):
+                        obstacle.pose.position.x = xPos
+                        self.pub_model.publish(obstacle)
+                        time.sleep(0.1)         
+                    
+                    
+                    
+                    
+                    #obstacle.pose.position.x =1.2
+                    #self.pub_model.publish(obstacle)                  
+                    #time.sleep(0.1)
+                    #obstacle.pose.position.x =0.3
+                    #self.pub_model.publish(obstacle) 
+                    #time.sleep(0.1)
+                    
+
+def main():
+    rospy.init_node('moving_obstacle')
+    moving = Moving()
+
+if __name__ == '__main__':
+    main()
